@@ -1,0 +1,9 @@
+# Ignore node_modules
+
+/node_modules
+
+.env
+/.idea
+/.vscode
+package-lock.json
+
