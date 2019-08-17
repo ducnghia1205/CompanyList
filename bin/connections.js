@@ -1,14 +1,16 @@
+require('dotenv').config();
 const PSQL = require('pg');
-const urlDataBase = process.env.dataBaseURI || 'postgres://ducnghia';
-const portDataBase = process.env.portDataBase || '5432';
-const host = process.env.HOST || 'localhost';
-const dbName = process.env.dataBaseName || 'companylist';
+const urlDataBase = process.env.user;
+const passwordDataBase = process.env.password;
+const portDataBase = process.env.dbPort;
+const host = process.env.HOST;
+const dbName = process.env.database;
 
-
+console.log('process.env.user: ', process.env.user);
 module.exports = {
   // postgres
   getPortGresClientWrite: () => {
-    const connectionString = `${urlDataBase}@${host}:${portDataBase}/${dbName}`;
+    const connectionString = `${urlDataBase}:${passwordDataBase}@${host}:${portDataBase}/${dbName}`;
     const client = new PSQL.Client({
       connectionString: connectionString
     });
