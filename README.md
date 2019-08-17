@@ -7,14 +7,8 @@ npm install
 ```
 
 # Usage
-## Development
+## Start
 
 ```
-npm run dev
-```
-
-## Production
-
-```
-npm run start
+npm start
 ```
