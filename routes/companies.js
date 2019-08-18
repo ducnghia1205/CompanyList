@@ -22,15 +22,12 @@ router.get('/', async function (req, res) {
 router.post('/',async function (req, res) {
   try {
     const name = req.body.name;
-    const employee_count = req.body.employee_count;
-    const description = req.body.description.toString();
     const country_code = req.body.country_code;
     const address = req.body.address;
     const placeholder_url = req.body.placeholder_url;
-    const video_url = req.body.video_url;
-    const founded_at = req.body.founded_at;
+    
     if (!name || !country_code || !address || !placeholder_url) {
-      return res.json('missing require field!');
+      return res.json('missing required field!');
     }
     await db('companies').insert(req.body);
 
