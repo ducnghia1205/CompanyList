@@ -2,34 +2,37 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/db');
 const moment = require('moment');
+const CONSTANTS = require('../configs/constants');
+const { validationCompanies } = require('../helpers/validation');
 
 router.get('/', async function (req, res) {
-  const perPage = req.query.per_page || 20;
-  const page = req.query.page || 1;
-  const result = await PSQL.query(
-    `
+  try {
+    const perPage = req.query.per_page || 20;
+    const page = req.query.page || 1;
+    const result = await PSQL.query(
+      `
      SELECT * FROM companies 
      LIMIT ${perPage} OFFSET ${(page - 1) * perPage}
      `
-  );
+    );
 
-  if (!result) {
-    return res.send('No have data!')
+    if (!result) {
+      return res.send('No have data!')
+    }
+
+    return res.send(result.rows);
+  } catch (e) {
+    console.log(e.message)
   }
-
-  return res.send(result.rows);
 });
 
 router.post('/',async function (req, res) {
   try {
-    const name = req.body.name;
-    const country_code = req.body.country_code;
-    const address = req.body.address;
-    const placeholder_url = req.body.placeholder_url;
+   const validationResult = await validationCompanies(undefined, req.body, CONSTANTS.TYPE_CREATE);
 
-    if (!name || !country_code || !address || !placeholder_url) {
-      return res.json('missing required field!');
-    }
+   if (validationResult.errors && validationResult.errors.length) {
+     return res.json(validationResult.errors);
+   }
     await db('companies').insert(req.body);
 
     return res.json('success');
@@ -41,19 +44,12 @@ router.post('/',async function (req, res) {
 router.put('/:id',async function (req, res) {
   try {
     const id = req.params.id;
-    const name = req.body.name;
-    const country_code = req.body.country_code;
-    const address = req.body.address;
-    const placeholder_url = req.body.placeholder_url;
+    const validationResult = await validationCompanies(id, req.body, CONSTANTS.TYPE_UPDATE);
 
-    if (!id || !name || !country_code || !address || !placeholder_url) {
-      return res.json('missing required field!');
+    if (validationResult.errors && validationResult.errors.length) {
+      return res.json(validationResult.errors);
     }
-    const company = await db('companies').select('*').where('id', id);
 
-    if (!company || !company.length){
-      return res.json('The company does not exist.')
-    }
     req.body.updated_at = moment().format('YYYY-MM-DD HH:mm:ss.ssssssZZ').slice(0, -2);
     await db('companies').update(req.body).where('id', id);
 
@@ -66,14 +62,10 @@ router.put('/:id',async function (req, res) {
 router.delete('/:id',async function (req, res) {
   try {
     const id = req.params.id;
+    const validationResult = await validationCompanies(id, {}, CONSTANTS.TYPE_DELETE);
 
-    if (!id) {
-      return res.json('missing required field!');
-    }
-    const company = await db('companies').select('*').where('id', id);
-
-    if (!company || !company.length){
-      return res.json('The company does not exist.')
+    if (validationResult.errors && validationResult.errors.length) {
+      return res.json(validationResult.errors);
     }
     await db('companies').update({'deleted_at': moment().format('YYYY-MM-DD HH:mm:ss.ssssssZZ').slice(0, -2)}).where('id', id);
 
