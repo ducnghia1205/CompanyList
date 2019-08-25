@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db/db');
 const moment = require('moment');
 const CONSTANTS = require('../configs/constants');
-const { validationCompanies } = require('../helpers/validation');
+const {check, validationResult} = require('express-validator');
 
 router.get('/', async function (req, res) {
   try {
@@ -26,13 +26,22 @@ router.get('/', async function (req, res) {
   }
 });
 
-router.post('/',async function (req, res) {
+router.post('/', [
+  check('name', `Name is require`).exists(),
+  check('country_code', `Country_code is require`).exists().isLength({min: 3}),
+  check('address', `address is require`).exists(),
+  check('placeholder_url', `Placeholder_url is require`).exists()
+], async function (req, res) {
   try {
-   const validationResult = await validationCompanies(undefined, req.body, CONSTANTS.TYPE_CREATE);
+    // const validationResult = await validationCompanies(undefined, req.body, CONSTANTS.TYPE_CREATE);
 
-   if (validationResult.errors && validationResult.errors.length) {
-     return res.json(validationResult.errors);
-   }
+    // if (validationResult.errors && validationResult.errors.length) {
+    //   return res.json(validationResult.errors);
+    // }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({errors: errors.array()});
+    }
     await db('companies').insert(req.body);
 
     return res.json('success');
@@ -41,7 +50,7 @@ router.post('/',async function (req, res) {
   }
 });
 
-router.put('/:id',async function (req, res) {
+router.put('/:id', async function (req, res) {
   try {
     const id = req.params.id;
     const validationResult = await validationCompanies(id, req.body, CONSTANTS.TYPE_UPDATE);
@@ -59,7 +68,7 @@ router.put('/:id',async function (req, res) {
   }
 });
 
-router.delete('/:id',async function (req, res) {
+router.delete('/:id', async function (req, res) {
   try {
     const id = req.params.id;
     const validationResult = await validationCompanies(id, {}, CONSTANTS.TYPE_DELETE);
