@@ -4,10 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const connect = require('./bin/connections');
-
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const companiesRouter = require('./routes/companies');
+const routes = require('./bin/routes');
 
 // Connect to postgres DB
 connect.getPortGresClientWrite();
@@ -25,10 +22,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//
+routes.getRoutes(app)
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/companies', companiesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
