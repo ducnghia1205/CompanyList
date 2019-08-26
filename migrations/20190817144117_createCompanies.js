@@ -28,6 +28,10 @@ exports.up = async function (knex) {
     table.string('founded_at')
       .nullable()
 
+    table.timestamp('deleted_at')
+      .nullable()
+      .defaultTo()
+
     table.timestamps(true, true)
   })
 };
