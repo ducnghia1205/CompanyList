@@ -1,6 +1,6 @@
 const methods = require('../configs/methods');
-const {buildCheckFunction} = require('express-validator');
-const checkAll = buildCheckFunction(['params', 'body', 'query'])
+const { buildCheckFunction } = require('express-validator');
+const checkAll = buildCheckFunction(['params', 'body', 'query']);
 
 module.exports = {
   companyValidator: (method) => {
@@ -11,7 +11,7 @@ module.exports = {
           checkAll('country_code', `Country_code is require`).exists().isLength({min: 1}),
           checkAll('address', `address is require`).exists().isLength({min: 1}),
           checkAll('placeholder_url', `Placeholder_url is require`).exists().isLength({min: 1})
-        ]
+        ];
 
       case methods.UPDATE:
         return [
@@ -20,12 +20,12 @@ module.exports = {
           checkAll('country_code', `Country_code is require`).exists().isLength({min: 1}),
           checkAll('address', `address is require`).exists().isLength({min: 1}),
           checkAll('placeholder_url', `Placeholder_url is require`).exists().isLength({min: 1})
-        ]
+        ];
 
       case methods.DELETE:
         return [
           checkAll('id', `Id is require`).exists().isInt().isLength({min: 1}),
-        ]
+        ];
 
       default:
         console.log(`Wrong method validator ${method}`);

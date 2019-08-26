@@ -1,5 +1,5 @@
 const express = require('express');
-const companiesApi = require('../app/companies/route')
+const companiesApi = require('../app/companies/route');
 const apiRoutes = express.Router();
 
 module.exports = {
@@ -8,5 +8,4 @@ module.exports = {
 
     app.use('/', apiRoutes);
   }
-
-}
+};

@@ -1,6 +1,6 @@
 const db = require('../../db/db');
 const moment = require('moment');
-const { validationResult} = require('express-validator');
+const { validationResult } = require('express-validator');
 
 module.exports = {
   getListCompanies: async (req, res) => {
@@ -8,10 +8,7 @@ module.exports = {
       const perPage = req.query.per_page || 20;
       const page = req.query.page || 1;
       const result = await PSQL.query(
-        `
-     SELECT * FROM companies 
-     LIMIT ${perPage} OFFSET ${(page - 1) * perPage}
-     `
+        `SELECT * FROM companies LIMIT ${perPage} OFFSET ${(page - 1) * perPage}`
       );
 
       if (!result) {
@@ -73,4 +70,4 @@ module.exports = {
       console.log(e.message);
     }
   }
-}
+};
