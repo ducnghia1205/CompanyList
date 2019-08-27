@@ -1,5 +1,3 @@
-
-
 module.exports = (app)=>{
   app.use((req, res, next) =>{
     res.success = (data = null, code = 200)=>{
@@ -9,10 +7,10 @@ module.exports = (app)=>{
       let message = error;
       if (typeof error === 'object') {
         message = error.message;
+        if (error.errors && error.errors.length) {
+          message = error.errors;
+        }
       }
-      // if (code === 500) {
-      //   captureException('function', error);
-      // }
       return res.status(code).json({ data: null, error: true, message: message });
     };
     next();

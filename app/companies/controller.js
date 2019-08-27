@@ -1,6 +1,8 @@
 const db = require('../../db/db');
 const moment = require('moment');
 const { validationResult } = require('express-validator');
+const constants  = require('../../configs/constants');
+const dateTimeUtils  = require('../../helpers/dateTimeUtils');
 
 module.exports = {
   getListCompanies: async (req, res) => {
@@ -11,11 +13,11 @@ module.exports = {
         `SELECT * FROM companies LIMIT ${perPage} OFFSET ${(page - 1) * perPage}`
       );
 
-      if (!result) {
-        return res.send('No have data!')
+      if (!result || !result.rows.length) {
+        return res.error('No data available!')
       }
 
-      return res.json(result.rows);
+      return res.success(result.rows);
     } catch (e) {
       console.log(e.message)
     }
@@ -24,11 +26,13 @@ module.exports = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(422).json({errors: errors.array()});
+        return res.error({errors: errors.array()}, 422);
       }
-      await db('companies').insert(req.body);
-
-      return res.json('success');
+      const company = await db('companies').insert(req.body).returning('*');
+      if (!company || !company.length){
+        return res.error('Create company fail.')
+      }
+      return res.success(company[0]);
     } catch (e) {
       console.log(e.message);
     }
@@ -38,16 +42,15 @@ module.exports = {
       const id = req.params.id;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(422).json({errors: errors.array()});
+        return res.error({errors: errors.array()}, 422);
       }
-      const company = await db('companies').select('*').where('id', id);
+      let company = await db('companies').select('*').where('id', id).returning('*');
       if (!company || !company.length) {
-        return res.json(`company does't exist`);
+        return res.error(`company does't exist`);
       }
       req.body.updated_at = moment().format('YYYY-MM-DD HH:mm:ss.ssssssZZ').slice(0, -2);
-      await db('companies').update(req.body).where('id', id);
-
-      return res.json('success');
+      company = await db('companies').update(req.body).where('id', id).returning('*');
+      return res.success(company[0]);
     } catch (e) {
       console.log(e.message);
     }
@@ -57,15 +60,16 @@ module.exports = {
       const id = req.params.id;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(422).json({errors: errors.array()});
+        return res.error({errors: errors.array()}, 422);
       }
-      const company = await db('companies').select('*').where('id', id);
+      let company = await db('companies').select('*').where('id', id);
       if (!company || !company.length) {
-        return res.json(`company does't exist`);
+        return res.error(`company does't exist`);
       }
-      await db('companies').update({'deleted_at': moment().format('YYYY-MM-DD HH:mm:ss.ssssssZZ').slice(0, -2)}).where('id', id);
-
-      return res.json('success');
+      company = await db('companies').update({
+        'deleted_at': dateTimeUtils.formatDatetimePostgres(constants.DATE_TIME_POSTGRES)})
+        .where('id', id).returning('*');
+      return res.success(company[0]);
     } catch (e) {
       console.log(e.message);
     }

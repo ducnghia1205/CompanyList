@@ -30,7 +30,6 @@ exports.up = async function (knex) {
 
     table.timestamp('deleted_at')
       .nullable()
-      .defaultTo()
 
     table.timestamps(true, true)
   })
