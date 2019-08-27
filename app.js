@@ -5,12 +5,14 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const connect = require('./bin/connections');
 const routes = require('./bin/routes');
+const middleware = require('./middleware/response');
 
 // Connect to postgres DB
 connect.getPortGresClientWrite();
 
 const app = express();
 
+middleware(app);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
