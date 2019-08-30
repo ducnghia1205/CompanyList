@@ -39,7 +39,7 @@ module.exports = {
       case methods.CREATE:
         return [
           checkAll('user_name', `user_name is require`).exists().isLength({min: 1}),
-          checkAll('email', `email is require`).exists().isLength({min: 1}),
+          checkAll('email', `email is require`).exists().isEmail().isLength({min: 1}),
           checkAll('password', `password is require`).exists().isLength({min: 1}),
         ];
 
@@ -47,7 +47,7 @@ module.exports = {
         return [
           checkAll('id', `id is require`).exists().isInt().isLength({min: 1}),
           checkAll('user_name', `user_name is require`).exists().isLength({min: 1}),
-          checkAll('email', `email is require`).exists().isLength({min: 1}),
+          checkAll('email', `email is require`).exists().isEmail().isLength({min: 1}),
         ];
 
       case methods.DELETE:

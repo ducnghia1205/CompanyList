@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt-nodejs');
+
 exports.up = async function (knex) {
   await knex.schema.createTable('users', table => {
     table.increments('id')
@@ -22,4 +24,8 @@ exports.up = async function (knex) {
 
 exports.down = async function (knex) {
   await knex.schema.dropTable('users');
+};
+
+exports.generatePassword = function (password) {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 };

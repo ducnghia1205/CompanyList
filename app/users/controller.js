@@ -1,8 +1,8 @@
 const db = require('../../db/db');
-const moment = require('moment');
 const { validationResult } = require('express-validator');
 const constants  = require('../../configs/constants');
 const dateTimeUtils  = require('../../helpers/dateTimeUtils');
+const { generatePassword } = require('../../migrations/20190828172839_createUsers');
 
 module.exports = {
   getListUsers: async (req, res) => {
@@ -28,11 +28,12 @@ module.exports = {
       if (!errors.isEmpty()) {
         return res.error({errors: errors.array()}, 422);
       }
-      const company = await db('users').insert(req.body).returning('*');
-      if (!company || !company.length){
+      req.body.password = generatePassword(req.body.password);
+      const user = await db('users').insert(req.body).returning('*');
+      if (!user || !user.length){
         return res.error('Create user fail.')
       }
-      return res.success(company[0]);
+      return res.success(user[0]);
     } catch (e) {
       console.log(e.message);
     }
@@ -44,13 +45,16 @@ module.exports = {
       if (!errors.isEmpty()) {
         return res.error({errors: errors.array()}, 422);
       }
-      let company = await db('users').select('*').where('id', id).returning('*');
-      if (!company || !company.length) {
+      if (req.body && req.body.password) {
+        req.body.password = generatePassword(req.body.password);
+      }
+      let user = await db('users').select('*').where('id', id).returning('*');
+      if (!user || !user.length) {
         return res.error(`user does't exist`);
       }
       req.body.updated_at = dateTimeUtils.formatDatetimePostgres(constants.DATE_TIME_POSTGRES);
-      company = await db('users').update(req.body).where('id', id).returning('*');
-      return res.success(company[0]);
+      user = await db('users').update(req.body).where('id', id).returning('*');
+      return res.success(user[0]);
     } catch (e) {
       console.log(e.message);
     }
@@ -62,14 +66,14 @@ module.exports = {
       if (!errors.isEmpty()) {
         return res.error({errors: errors.array()}, 422);
       }
-      let company = await db('users').select('*').where('id', id);
-      if (!company || !company.length) {
+      let user = await db('users').select('*').where('id', id);
+      if (!user || !user.length) {
         return res.error(`user does't exist`);
       }
-      company = await db('user').update({
+      user = await db('users').update({
         'deleted_at': dateTimeUtils.formatDatetimePostgres(constants.DATE_TIME_POSTGRES)})
         .where('id', id).returning('*');
-      return res.success(company[0]);
+      return res.success(user[0]);
     } catch (e) {
       console.log(e.message);
     }
