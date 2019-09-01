@@ -1,5 +1,5 @@
 const methods = require('../configs/methods');
-const { buildCheckFunction } = require('express-validator');
+const {buildCheckFunction} = require('express-validator');
 const checkAll = buildCheckFunction(['params', 'body', 'query']);
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
         ];
     }
   },
-  userValidator: (method) =>{
+  userValidator: (method) => {
     switch (method) {
       case methods.CREATE:
         return [
