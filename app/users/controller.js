@@ -9,11 +9,11 @@ module.exports = {
       const id = req.params.id;
       const result = await db('users').where({id: id}).first();
 
-      if (result) {
-        return res.success(result);
+      if (!result) {
+        return res.error(`user with id ${id} doesn't exit`)
       }
 
-      return res.error(`user with id ${id} doesn't exit`)
+      return res.success(result);
     } catch (e) {
       return res.error(`failed to get user ${req.params.id} due to ${e.message}`)
     }
@@ -22,9 +22,9 @@ module.exports = {
     try {
       const perPage = req.query.per_page || 20;
       const page = req.query.page || 1;
-      const result = await PSQL.query(
-        `SELECT * FROM users LIMIT ${perPage} OFFSET ${(page - 1) * perPage}`
-      );
+      const result = await db('users')
+        .select('*')
+        .limit(perPage).offset((page - 1) * perPage);
 
       return res.success(result.rows);
     } catch (e) {
@@ -42,7 +42,7 @@ module.exports = {
       const user = await db('users').insert(req.body).returning('*');
 
       if (!user || !user.length) {
-        return res.error('failed to create user.')
+        return res.error('failed to create user')
       }
 
       return res.success(user[0]);
@@ -63,14 +63,18 @@ module.exports = {
         req.body.password = generatePassword(req.body.password);
       }
 
-      let user = await db('users').select('*').where('id', id).returning('*');
+      let user = await db('users').select('*').where('id', id).first();
 
-      if (!user || !user.length) {
+      if (!user) {
         return res.error(`failed to update user`);
       }
 
       req.body.updated_at = dateTimeUtils.formatDatetimePostgres();
       user = await db('users').update(req.body).where('id', id).returning('*');
+
+      if (!user || !user.length) {
+        return res.error('failed to update user')
+      }
 
       return res.success(user[0]);
     } catch (e) {
@@ -86,15 +90,19 @@ module.exports = {
         return res.error({errors: errors.array()}, 422);
       }
 
-      let user = await db('users').select('*').where('id', id);
+      let user = await db('users').select('*').where('id', id).first();
 
-      if (!user || !user.length) {
+      if (!user) {
         return res.error(`failed to delete user.`);
       }
 
       user = await db('users').update({
         'deleted_at': dateTimeUtils.formatDatetimePostgres()
       }).where('id', id).returning('*');
+
+      if (!user || !user.length) {
+        return res.error('failed to delete user')
+      }
 
       return res.success(user[0]);
     } catch (e) {
