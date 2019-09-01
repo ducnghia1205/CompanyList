@@ -1,11 +1,11 @@
 const moment = require('moment');
 
 module.exports = {
-  formatDatetimePostgres: (format) => {
+  formatDatetimePostgres: () => {
     try {
-      return moment().format(format).slice(0, -2)
-    }catch (e) {
-      console.log(e);
+      return moment().format("YYYY-MM-DD HH:mm:ss.ssssssZZ").slice(0, -2)
+    } catch (e) {
+      return e
     }
   }
 };

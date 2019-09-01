@@ -1,4 +1,5 @@
 require(`dotenv`).config();
+
 const PSQL = require(`pg`);
 const urlDataBase = process.env.user;
 const passwordDataBase = process.env.password;
@@ -18,7 +19,7 @@ module.exports = {
       .then(success => {
         //success.done(); // success, release the connection;
         console.log(`connect to database postgres SQL success`)
-    })
+      })
       .catch(error => {
         console.log(`ERROR:`, error.message || error);
       });
