@@ -9,7 +9,6 @@ module.exports = {
     try {
       return await jwt.verify(token, jwtSecret);
     } catch (e) {
-      console.log('err: ', e);
       return e;
     }
   },
@@ -17,7 +16,6 @@ module.exports = {
     try {
       return await jwt.sign(data, jwtSecret, { expiresIn: jwtExpires }, { algorithm: jwtAlgorithm });
     } catch (e) {
-      console.log('err: ', e);
       return e;
     }
   }

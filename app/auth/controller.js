@@ -1,10 +1,8 @@
 const db = require('../../db/db');
-const { validationResult } = require('express-validator');
-const constants  = require('../../configs/constants');
-const dateTimeUtils  = require('../../helpers/dateTimeUtils');
+const {validationResult} = require('express-validator');
 const facebookServices = require('../../helpers/facebookServices');
 const tokenHelper = require('../../helpers/authToken');
-const { comparePassword, generatePassword } = require('../../migrations/20190828172839_createUsers');
+const {comparePassword, generatePassword} = require('../../migrations/20190828172839_createUsers');
 
 module.exports = {
   login: async (req, res) => {
@@ -22,14 +20,14 @@ module.exports = {
         email: req.body.email,
       };
       //check exist user
-      let user = await db('users').select('*').where('user_id', req.body.userID).returning('*');
-      if (!user || !user.length) {
+      let user = await db('users').select('*').where('user_id', req.body.userID).first();
+      if (!user) {
         user = await db('users').insert(newUser).returning('*');
       } else {
         user = await db('users').update({accessToken: verify.data.access_token}).where('user_id', req.body.userID).returning('*');
       }
       // generate token
-      let token = await tokenHelper.signToken({ id: user[0].id });
+      let token = await tokenHelper.signToken({id: user[0].id});
       const result = {
         user: user[0],
         token: token
@@ -40,24 +38,24 @@ module.exports = {
       return res.error(e);
     }
   },
-  loginWithEmailPassword: async (req, res) => {
+  loginWithEmail: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.error({errors: errors.array()}, 422);
       }
       // verify facebook accessToken
-      let user = await db('users').select('*').where('email', req.body.email).returning('*');
-      if (!user || !user.length) {
+      let user = await db('users').select('*').where('email', req.body.email).first();
+      if (!user) {
         return res.error('email is incorrect.')
       }
-      if (!comparePassword(req.body.password, user[0].password)) {
+      if (!comparePassword(req.body.password, user.password)) {
         return res.error('password is incorrect.')
       }
       // generate token
-      let token = await tokenHelper.signToken({ id: user[0].id });
+      let token = await tokenHelper.signToken({id: user.id});
       const result = {
-        user: user[0],
+        user: user,
         token: token
       };
 
@@ -67,20 +65,21 @@ module.exports = {
     }
   },
   createUser: async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.error({errors: errors.array()}, 422);
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.error({errors: errors.array()}, 422);
+      }
+
+      req.body.password = generatePassword(req.body.password);
+      const user = await db('users').insert(req.body).returning('*');
+      if (!user || !user.length) {
+        return res.error('Create user fail.')
+      }
+
+      return res.success(user[0]);
+    } catch (e) {
+      return res.error(e)
     }
-    req.body.password = generatePassword(req.body.password);
-    const user = await db('users').insert(req.body).returning('*');
-    if (!user || !user.length){
-      return res.error('Create user fail.')
-    }
-    return res.success(user[0]);
-  } catch (e) {
-    console.log(e.message);
-    return res.error(e)
-  }
-},
+  },
 };
