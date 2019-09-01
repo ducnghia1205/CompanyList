@@ -7,9 +7,11 @@ exports.up = async function (knex) {
       .primary()
 
     table.string('user_name')
+      .unique()
       .notNullable()
 
     table.string('email')
+      .unique()
       .notNullable()
 
     table.string('password')
@@ -28,4 +30,8 @@ exports.down = async function (knex) {
 
 exports.generatePassword = function (password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+};
+
+exports.comparePassword = function (password, databasePassword) {
+  return bcrypt.compareSync(password, databasePassword);
 };
