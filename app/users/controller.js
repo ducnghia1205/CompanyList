@@ -1,10 +1,23 @@
 const db = require('../../db/db');
 const {validationResult} = require('express-validator');
-const constants = require('../../configs/constants');
 const dateTimeUtils = require('../../helpers/dateTimeUtils');
 const {generatePassword} = require('../../migrations/20190828172839_createUsers');
 
 module.exports = {
+  getUser: async (req, res) => {
+    try {
+      const id = req.params.id;
+      const result = await db('users').where({id: id}).first();
+
+      if (result) {
+        return res.success(result);
+      }
+
+      return res.error(`user with id ${id} doesn't exit`)
+    } catch (e) {
+      return res.error(`failed to get user ${req.params.id} due to ${e.message}`)
+    }
+  },
   getListUsers: async (req, res) => {
     try {
       const perPage = req.query.per_page || 20;
@@ -15,8 +28,7 @@ module.exports = {
 
       return res.success(result.rows);
     } catch (e) {
-      console.log(e.message)
-      return res.error(`Failed to load users.`);
+      return res.error(`failed to load users due to ${e.message}`);
     }
   },
   createUser: async (req, res) => {
@@ -30,13 +42,12 @@ module.exports = {
       const user = await db('users').insert(req.body).returning('*');
 
       if (!user || !user.length) {
-        return res.error('Failed to create user.')
+        return res.error('failed to create user.')
       }
 
       return res.success(user[0]);
     } catch (e) {
-      console.log(e.message);
-      return res.error('Failed to create user.')
+      return res.error(`failed to create user due to ${e.message}`)
     }
   },
   updateUser: async (req, res) => {
@@ -55,16 +66,15 @@ module.exports = {
       let user = await db('users').select('*').where('id', id).returning('*');
 
       if (!user || !user.length) {
-        return res.error(`Failed to update user.`);
+        return res.error(`failed to update user`);
       }
 
-      req.body.updated_at = dateTimeUtils.formatDatetimePostgres(constants.DATE_TIME_POSTGRES);
+      req.body.updated_at = dateTimeUtils.formatDatetimePostgres();
       user = await db('users').update(req.body).where('id', id).returning('*');
 
       return res.success(user[0]);
     } catch (e) {
-      console.log(e.message);
-      return res.error(`Failed to update user.`);
+      return res.error(`failed to update user due to ${e.message}`);
     }
   },
   deleteUser: async (req, res) => {
@@ -79,17 +89,16 @@ module.exports = {
       let user = await db('users').select('*').where('id', id);
 
       if (!user || !user.length) {
-        return res.error(`Failed to delete user.`);
+        return res.error(`failed to delete user.`);
       }
 
       user = await db('users').update({
-        'deleted_at': dateTimeUtils.formatDatetimePostgres(constants.DATE_TIME_POSTGRES)
+        'deleted_at': dateTimeUtils.formatDatetimePostgres()
       }).where('id', id).returning('*');
 
       return res.success(user[0]);
     } catch (e) {
-      console.log(e.message);
-      return res.error(`Failed to delete user.`);
+      return res.error(`failed to delete user due to ${e.message}`);
     }
   }
 };
